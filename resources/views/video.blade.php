@@ -12,7 +12,7 @@
 </head>
 <body>
 
-<div id="error-msg">Помилка завантаження відео. Будь ласка, оновіть сторінку.</div>
+<div id="error-msg">Error loading video. Please refresh the page.</div>
 
 <video id="video" controls controlsList="nodownload" crossorigin="use-credentials"></video>
 
