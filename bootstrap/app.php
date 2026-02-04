@@ -11,7 +11,10 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        //
+        $middleware->alias([
+            'video.access' => \App\Http\Middleware\VideoAccess::class,
+            'set.video.session' => \App\Http\Middleware\SetVideoSession::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

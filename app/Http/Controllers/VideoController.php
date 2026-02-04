@@ -12,10 +12,6 @@ class VideoController extends Controller
 
     public function getPlaylist(Request $request)
     {
-        if (!session()->has('video_allowed')) {
-            abort(403, 'Access denied: session inactive');
-        }
-
         $path = self::VIDEO_PATH . '/playlist.m3u8';
 
         if (!Storage::disk('private')->exists($path)) {
@@ -24,7 +20,7 @@ class VideoController extends Controller
 
         $content = Storage::disk('private')->get($path);
 
-        $content = preg_replace_callback('/^.*\.ts$/m', function ($matches) {
+        $content = preg_replace_callback('/^.*\\.ts$/m', function ($matches) {
             $filename = trim($matches[0]);
 
             return URL::temporarySignedRoute(
@@ -41,10 +37,6 @@ class VideoController extends Controller
 
     public function getSegment(Request $request, $filename)
     {
-        if (!session()->has('video_allowed')) {
-            abort(403);
-        }
-
         $path = self::VIDEO_PATH . '/' . $filename;
 
         if (!Storage::disk('private')->exists($path)) {

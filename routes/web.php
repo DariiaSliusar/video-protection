@@ -18,18 +18,15 @@ Route::middleware('auth')->group(function () {
 require __DIR__.'/auth.php';
 
 
-Route::get('/', function () {
-    if (!Session::has('video_allowed')) {
-        Session::put('video_allowed', true);
-    }
-    return view('video');
-})->name('video.watch');
+Route::middleware('video.access')->group(function () {
+    Route::get('/', function () {
+        return view('video');
+    })->middleware('set.video.session')->name('video.watch');
 
-// Плейлист
-Route::get('/video/stream.m3u8', [VideoController::class, 'getPlaylist'])
-    ->name('video.playlist');
+    Route::get('/video/stream.m3u8', [VideoController::class, 'getPlaylist'])
+        ->name('video.playlist');
 
-// Сегменти
-Route::get('/video/segments/{filename}', [VideoController::class, 'getSegment'])
-    ->name('video.segment')
-    ->middleware('signed');
+    Route::get('/video/segments/{filename}', [VideoController::class, 'getSegment'])
+        ->middleware('signed')
+        ->name('video.segment');
+});
