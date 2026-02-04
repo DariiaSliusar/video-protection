@@ -1,59 +1,91 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Video Protection Laravel Project
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+This project implements a secure video playback mechanism based on the Best Effort Protection principle. The system prevents direct downloading of video files and restricts access to content to authorized sessions only.
 
-## About Laravel
+---
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+**Best Effort Protection** is an approach where the system does everything possible to complicate unauthorized access to video, but does not guarantee absolute protection against attackers. This project uses the following mechanisms:
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+- The video is split into HLS segments (.ts), making it impossible to simply download via the browser.
+- All media files are stored in private storage (`storage/app/private`), which is not directly accessible.
+- Access to the video is granted only through a session, which is created automatically when visiting the main page.
+- Links to segments are generated dynamically and cryptographically signed, limiting their validity period.
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+---
 
-## Learning Laravel
+## Key Features
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+- **HLS Segmentation**: The video is not streamed as a single file, but split into small segments (.ts), making standard downloading via browser impossible.
+- **Private Storage**: All media files are stored in protected storage (`storage/app/private`) with no public access.
+- **Session-Based Access**: Access to the video is automatically granted via session when visiting the main page.
+- **Dynamic Playlist & Signed URLs**: Links to each video segment are generated dynamically and cryptographically signed.
+- **Modern UI**: Tailwind CSS, Blade components.
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+## Deployment Instructions
 
-## Laravel Sponsors
+### 1. Clone the repository
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+```bash
+git clone https://github.com/DariiaSliusar/video-protection.git
+cd video-protection
+```
 
-### Premium Partners
+### 2. Install dependencies
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+```bash
+composer install
+npm install && npm run dev
+```
 
-## Contributing
+### 3. Environment setup
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+```bash
+cp .env.example .env
+php artisan key:generate
+```
 
-## Code of Conduct
+### 4. Create directory for video
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+Laravel does not track files in storage/app/private, so you need to create the folder manually:
 
-## Security Vulnerabilities
+```bash
+mkdir -p storage/app/private/videos/test-video
+```
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+### 5. Add video files
+
+Place your playlist file (`playlist.m3u8`) and segments (`.ts`) in the `storage/app/private/videos/test-video/` folder.
+
+*If you do not have ready HLS files, use the FFmpeg command from the section below.*
+
+### 6. Start the server
+
+```bash
+php artisan serve
+```
+
+or to run on another port (e.g., 8005):
+
+```bash
+php artisan serve --port=8005
+```
+
+### 7. View
+
+Open [http://127.0.0.1:8000](http://127.0.0.1:8000) or [http://127.0.0.1:8005](http://127.0.0.1:8005) in your browser. Access to the video will be granted automatically via session creation.
+
+---
+
+## How to prepare video (FFmpeg)
+
+If you have a `video.mp4` file, convert it to HLS for use with the project:
+
+```bash
+ffmpeg -i video.mp4 -c:v copy -c:a copy -f hls -hls_time 10 -hls_playlist_type vod storage/app/private/videos/test-video/playlist.m3u8
+```
+
+---
 
 ## License
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+This project is open-sourced under the [MIT license](LICENSE).
